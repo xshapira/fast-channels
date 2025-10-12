@@ -180,6 +180,95 @@ Create a basic CSS file at ``sandbox/static/css/style.css``:
 This provides all the styles needed for the tutorial application including responsive layout, chat boxes, input forms,
 and message styling.
 
+Setting Up Channel Layers
+--------------------------
+
+Channel layers enable cross-process communication and group messaging in Fast Channels. Let's set them up now so
+they're ready when we need them in later tutorial sections.
+
+Create a ``sandbox/layers.py`` file:
+
+.. code-block:: python
+
+    # sandbox/layers.py
+    """
+    Channel layer definitions and registration.
+    This file centralizes all channel layer configuration for the application.
+    """
+
+    import os
+
+    from fast_channels.layers import (
+        InMemoryChannelLayer,
+        has_layers,
+        register_channel_layer,
+    )
+    from fast_channels.layers.redis import (
+        RedisChannelLayer,
+        RedisPubSubChannelLayer,
+    )
+
+    def setup_channel_layers():
+        """
+        Set up and register all channel layers for the application.
+        This should be called once during application startup.
+        """
+        # Prevent duplicate registration
+        if has_layers():
+            return
+
+        # Get Redis URL from environment or use default
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6399")
+
+        # Create different types of layers for different use cases
+        layers_config = {
+            # In-memory layer for development/testing
+            "memory": InMemoryChannelLayer(),
+
+            # Redis Pub/Sub layer for real-time messaging (low latency)
+            "chat": RedisPubSubChannelLayer(
+                hosts=[redis_url],
+                prefix="chat"
+            ),
+
+            # Redis Queue layer for reliable messaging (guaranteed delivery)
+            "queue": RedisChannelLayer(
+                hosts=[redis_url],
+                prefix="queue",
+                expiry=900,    # 15 minutes
+                capacity=1000,
+            ),
+
+            # Notifications layer
+            "notifications": RedisPubSubChannelLayer(
+                hosts=[redis_url],
+                prefix="notify"
+            ),
+
+            # Analytics layer for metrics/events
+            "analytics": RedisChannelLayer(
+                hosts=[redis_url],
+                prefix="analytics",
+                expiry=3600,   # 1 hour
+                capacity=5000,
+            ),
+        }
+
+        # Register all layers
+        for alias, layer in layers_config.items():
+            register_channel_layer(alias, layer)
+
+**Understanding the Layer Types:**
+
+- **memory**: For testing and development (single-process only)
+- **chat**: For real-time chat (Redis Pub/Sub - low latency, no persistence)
+- **queue**: For reliable messaging (Redis Queue - persistent, guaranteed delivery)
+- **notifications**: For real-time notifications (Redis Pub/Sub)
+- **analytics**: For analytics events (Redis Queue with longer expiry)
+
+**Note:** The Redis URL uses port 6399 to match our Docker Compose configuration. For detailed information about
+channel layers, see the :doc:`../guides/channel-layer-setup` guide.
+
 Testing Your Setup
 ------------------
 

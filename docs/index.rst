@@ -16,6 +16,12 @@ Contents
 
 .. toctree::
     :maxdepth: 1
+    :caption: Guides
+
+    guides/channel-layer-setup
+
+.. toctree::
+    :maxdepth: 1
     :caption: Tutorial
 
     tutorial/index

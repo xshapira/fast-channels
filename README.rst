@@ -77,7 +77,9 @@ Installation
 Quick Start
 -----------
 
-1. **Register Channel Layers**
+1. **Set Up Channel Layers**
+
+Create a ``layers.py`` file to configure channel layers:
 
 .. code-block:: python
 
@@ -85,24 +87,29 @@ Quick Start
     import os
     from fast_channels.layers import (
         InMemoryChannelLayer,
-        RedisChannelLayer,
-        RedisPubSubChannelLayer,
+        has_layers,
         register_channel_layer,
     )
+    from fast_channels.layers.redis import RedisChannelLayer
 
-    def setup_layers():
-        # Redis URL from environment
+    def setup_channel_layers():
+        """Set up and register channel layers for the application."""
+        # Prevent duplicate registration
+        if has_layers():
+            return
+
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
 
-        # Register different layer types
-        register_channel_layer("memory", InMemoryChannelLayer())
-        register_channel_layer("chat", RedisPubSubChannelLayer(hosts=[redis_url], prefix="chat"))
-        register_channel_layer("queue", RedisChannelLayer(
-            hosts=[redis_url],
-            prefix="queue",
-            expiry=900,  # 15 minutes
-            capacity=1000,
-        ))
+        # Register the default channel layer
+        register_channel_layer(
+            "default",
+            RedisChannelLayer(hosts=[redis_url])
+        )
+
+        # Optional: Register additional layers for specific purposes
+        # register_channel_layer("memory", InMemoryChannelLayer())
+
+**For detailed setup options and advanced configurations, see the** `Channel Layer Setup Guide <https://fast-channels.readthedocs.io/en/latest/guides/channel-layer-setup.html>`_.
 
 2. **Create WebSocket Consumer**
 
@@ -113,7 +120,7 @@ Quick Start
 
     class ChatConsumer(AsyncWebsocketConsumer):
         groups = ["chat_room"]
-        channel_layer_alias = "chat"  # Use registered layer
+        channel_layer_alias = "default"  # Use registered layer
 
         async def connect(self):
             await self.accept()
@@ -144,11 +151,11 @@ Quick Start
 
     # main.py
     from fastapi import FastAPI
-    from .layers import setup_layers
+    from .layers import setup_channel_layers
     from .consumer import ChatConsumer
 
-    # Setup layers before creating the app
-    setup_layers()
+    # Setup layers BEFORE creating the app
+    setup_channel_layers()
 
     app = FastAPI()
 
@@ -158,6 +165,8 @@ Quick Start
 
     # Mount WebSocket routes
     app.mount("/ws", ws_app)
+
+That's it! Your real-time WebSocket application with channel layers is ready to use.
 
 Channel Layer Backends
 ----------------------
@@ -180,41 +189,55 @@ Channel Layer Backends
    - No message persistence
    - Best for live chat and notifications
 
-**Registration Examples:**
+**Configuration Examples:**
 
 .. code-block:: python
 
+    # layers.py
+    import os
     from fast_channels.layers import (
         InMemoryChannelLayer,
-        RedisChannelLayer,
-        RedisPubSubChannelLayer,
+        has_layers,
         register_channel_layer,
     )
+    from fast_channels.layers.redis import (
+        RedisChannelLayer,
+        RedisPubSubChannelLayer,
+    )
 
-    # In-memory for development
-    register_channel_layer("memory", InMemoryChannelLayer())
+    def setup_channel_layers():
+        """Set up and register channel layers for the application."""
+        if has_layers():
+            return
 
-    # Redis Queue Layer for reliable messaging
-    register_channel_layer("reliable", RedisChannelLayer(
-        hosts=["redis://localhost:6379"],
-        prefix="app_queue",
-        capacity=1500,
-        expiry=3600,  # 1 hour
-    ))
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
 
-    # Redis Pub/Sub for real-time chat
-    register_channel_layer("chat", RedisPubSubChannelLayer(
-        hosts=["redis://localhost:6379"],
-        prefix="app_chat",
-    ))
+        # In-memory for development/testing
+        register_channel_layer("memory", InMemoryChannelLayer())
 
-    # Redis Sentinel for high availability
-    register_channel_layer("ha_queue", RedisChannelLayer(
-        sentinels=[("localhost", 26379)],
-        service_name="mymaster",
-        sentinel_kwargs={"password": "sentinel_password"},
-        connection_kwargs={"password": "redis_password"},
-    ))
+        # Redis Queue Layer for reliable messaging
+        register_channel_layer("reliable", RedisChannelLayer(
+            hosts=[redis_url],
+            prefix="app_queue",
+            capacity=1500,
+            expiry=3600,  # 1 hour
+        ))
+
+        # Redis Pub/Sub for real-time chat
+        register_channel_layer("chat", RedisPubSubChannelLayer(
+            hosts=[redis_url],
+            prefix="app_chat",
+        ))
+
+        # Redis Sentinel for high availability
+        register_channel_layer("ha_queue", RedisChannelLayer(
+            sentinels=[("localhost", 26379)],
+            service_name="mymaster",
+            sentinel_kwargs={"password": "sentinel_password"},
+            connection_kwargs={"password": "redis_password"},
+        ))
+
+**See the** `Channel Layer Setup Guide <https://fast-channels.readthedocs.io/en/latest/guides/channel-layer-setup.html>`_ **for detailed configuration options and best practices.**
 
 Testing
 -------
