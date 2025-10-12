@@ -63,7 +63,7 @@ license = {file = "LICENSE"}
 name = "fast-channels"
 readme = "README.rst"
 requires-python = ">=3.11,<4.0"
-version = "1.0.2"
+version = "1.0.3"
 
 [project.optional-dependencies]
 redis = [

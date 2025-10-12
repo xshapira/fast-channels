@@ -1,3 +1,9 @@
+## v1.0.3 (2025-10-12)
+
+### Fix
+
+- **docs**: add comprehensive channel layer setup guide
+
 ## v1.0.2 (2025-10-04)
 
 ### Fix
