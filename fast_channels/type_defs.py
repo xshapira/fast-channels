@@ -89,6 +89,37 @@ class WebSocketDisconnectEvent(TypedDict):
     reason: str | None
 
 
+# HTTP event types
+class HttpRequestEvent(TypedDict, total=False):
+    """HTTP request event from client."""
+
+    type: Literal["http.request"]
+    body: bytes
+    more_body: bool
+
+
+class HttpResponseStartEvent(TypedDict):
+    """HTTP response start event with status and headers."""
+
+    type: Literal["http.response.start"]
+    status: int
+    headers: list[tuple[bytes, bytes]]
+
+
+class HttpResponseBodyEvent(TypedDict):
+    """HTTP response body event."""
+
+    type: Literal["http.response.body"]
+    body: bytes
+    more_body: bool
+
+
+class HttpDisconnectEvent(TypedDict):
+    """HTTP disconnection event from client."""
+
+    type: Literal["http.disconnect"]
+
+
 # ASGI application types
 ASGI3Application = Callable[
     [

@@ -13,6 +13,14 @@ Base Consumer
    :undoc-members:
    :show-inheritance:
 
+HTTP Consumers
+--------------
+
+.. autoclass:: fast_channels.consumer.AsyncHttpConsumer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 WebSocket Consumers
 -------------------
 
