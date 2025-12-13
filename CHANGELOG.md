@@ -1,3 +1,9 @@
+## v1.1.0 (2025-12-13)
+
+### Feat
+
+- add AsyncHttpConsumer support for HTTP endpoints
+
 ## v1.0.3 (2025-10-12)
 
 ### Fix

@@ -477,7 +477,7 @@ wheels = [
 
 [[package]]
 name = "fast-channels"
-version = "1.0.3"
+version = "1.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "asgiref" },
