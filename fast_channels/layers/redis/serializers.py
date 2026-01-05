@@ -197,8 +197,13 @@ else:
     class MsgPackSerializer(BaseMessageSerializer):  # type: ignore
         """MessagePack serializer using the msgpack library."""
 
-        as_bytes = staticmethod(msgpack.packb)  # pyright: ignore
-        from_bytes = staticmethod(msgpack.unpackb)  # pyright: ignore
+        def as_bytes(self, message: Any, *args: Any, **kwargs: Any) -> bytes:
+            """Convert message to bytes using msgpack."""
+            return msgpack.packb(message, *args, **kwargs)  # type: ignore
+
+        def from_bytes(self, message: bytes, *args: Any, **kwargs: Any) -> Any:
+            """Convert bytes back to message using msgpack."""
+            return msgpack.unpackb(message, *args, **kwargs)  # type: ignore
 
 
 class SerializersRegistry:
