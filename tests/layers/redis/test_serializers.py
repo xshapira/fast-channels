@@ -1,6 +1,7 @@
 import pytest
 from fast_channels.layers.redis.serializers import (
     JSONSerializer,
+    MissingSerializer,
     MsgPackSerializer,
     SerializerDoesNotExist,
     SerializersRegistry,
@@ -124,3 +125,10 @@ def test_serialization_encrypted(serializer_cls, clear_value):
     deserialized = serializer.deserialize(serialized)
     assert isinstance(deserialized, dict)
     assert deserialized == message
+
+
+def test_missing_serializer():
+    with pytest.raises(ImportError) as exc:
+        MissingSerializer()
+
+    assert "required dependency is not installed" in str(exc.value)
