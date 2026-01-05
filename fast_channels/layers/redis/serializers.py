@@ -152,7 +152,29 @@ class MissingSerializer(BaseMessageSerializer):
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Raise the stored exception to indicate missing dependency."""
-        raise self.exception  # type: ignore[misc]
+        if self.exception:
+            raise self.exception
+
+        raise ImportError(
+            f"Cannot initialize '{self.__class__.__name__}' because a required "
+            "dependency is not installed."
+        )
+
+    def as_bytes(self, message: Any, *args: Any, **kwargs: Any) -> bytes:
+        """
+        Placeholder implementation to satisfy the abstract base class.
+
+        'as_bytes' method is unreachable because __init__ always raises an exception.
+        """
+        raise NotImplementedError
+
+    def from_bytes(self, message: bytes, *args: Any, **kwargs: Any) -> Any:
+        """
+        Placeholder implementation to satisfy the abstract base class.
+
+        'from_bytes' method is unreachable because __init__ always raises an exception.
+        """
+        raise NotImplementedError
 
 
 class JSONSerializer(BaseMessageSerializer):
